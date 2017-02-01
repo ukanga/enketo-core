@@ -521,6 +521,13 @@ define( function( require, exports, module ) {
         } );
     };
 
+    Geopicker.prototype._cleanLatLng = function( latLng ) {
+        if ( Array.isArray( latLng ) ) {
+            return [ latLng[ 0 ], latLng[ 1 ] ];
+        }
+        return latLng;
+    }
+
     /**
      * Validates an individual latlng Array or Object
      * @param  {(Array.<number|string>|{lat: number, long:number})}  latLng latLng object or array
@@ -940,8 +947,8 @@ define( function( require, exports, module ) {
         this.points.forEach( function( latLng, index ) {
             var icon = that.props.type === 'geopoint' ? iconSingle : ( index === that.currentIndex ? iconMultiActive : iconMulti );
             if ( that._isValidLatLng( latLng ) ) {
-                coords.push( latLng );
-                markers.push( L.marker( latLng, {
+                coords.push( that._cleanLatLng( latLng ) );
+                markers.push( L.marker( that._cleanLatLng( latLng ), {
                     icon: icon,
                     clickable: !that.props.readonly,
                     draggable: !that.props.readonly,
@@ -1023,6 +1030,10 @@ define( function( require, exports, module ) {
 
         polylinePoints = ( this.points[ this.points.length - 1 ].join( '' ) !== '' ) ? this.points : this.points.slice( 0, this.points.length - 1 );
 
+        polylinePoints = polylinePoints.map( function( point ) {
+            return that._cleanLatLng( point );
+        } );
+
         if ( !this.polyline ) {
             this.polyline = L.polyline( polylinePoints, {
                 color: 'red'
@@ -1052,6 +1063,10 @@ define( function( require, exports, module ) {
 
         // console.log( 'updating polygon' );
         polygonPoints = ( this.points[ this.points.length - 1 ].join( '' ) !== '' ) ? this.points : this.points.slice( 0, this.points.length - 1 );
+
+        polygonPoints = polygonPoints.map( function( point ) {
+            return that._cleanLatLng( point );
+        } );
 
         if ( !this.polygon ) {
             // console.log( 'creating new polygon' );
@@ -1229,6 +1244,7 @@ define( function( require, exports, module ) {
         var polylinePoints;
         var polylineToTest;
         var intersects;
+        var that = this;
 
         if ( this.points < 3 ) {
             return false;
@@ -1250,6 +1266,10 @@ define( function( require, exports, module ) {
             polylinePoints[ 0 ][ 1 ] === polylinePoints[ polylinePoints.length - 1 ][ 1 ] ) {
             polylinePoints = polylinePoints.slice( 0, polylinePoints.length - 1 );
         }
+
+        polylinePoints = polylinePoints.map( function( point ) {
+            return that._cleanLatLng( point );
+        } )
 
         // create polyline
         polylineToTest = L.polyline( polylinePoints, {
